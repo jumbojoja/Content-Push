@@ -1,5 +1,5 @@
 import requests
-from wxpusher import WxPusher #https://github.com/wxpusher/wxpusher-sdk-python
+# from wxpusher import WxPusher #https://github.com/wxpusher/wxpusher-sdk-python
 from bs4 import BeautifulSoup
 
 url0 = 'http://qsxy.zju.edu.cn/'
