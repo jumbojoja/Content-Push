@@ -1,16 +1,75 @@
-import datetime
 import requests
+from wxpusher import WxPusher #https://github.com/wxpusher/wxpusher-sdk-python
 from bs4 import BeautifulSoup
 
-url = 'http://qsxy.zju.edu.cn/'
-response = requests.get(url)
-response.encoding = response.apparent_encoding
-soup = BeautifulSoup(response.text,'html.parser')
-all_data = soup.select('#wp_news_w13 > ul > li')
+url0 = 'http://qsxy.zju.edu.cn/'
+url1 = 'https://yunfeng.zju.edu.cn/on/main.htm'
+url2 = 'https://dqxy.zju.edu.cn/'
+
+response0 = requests.get(url0)
+response1 = requests.get(url1)
+response2 = requests.get(url2)
+
+response0.encoding = response0.apparent_encoding
+response1.encoding = response1.apparent_encoding
+response2.encoding = response2.apparent_encoding
+
+soup0 = BeautifulSoup(response0.text,'html.parser')
+soup1 = BeautifulSoup(response1.text,'html.parser')
+soup2 = BeautifulSoup(response2.text,'html.parser')
+
+all_data0 = soup0.select('#wp_news_w13 > ul > li')
+all_data1 = soup1.select('#wp_news_w21 > ul > li')
+all_data2 = soup2.select('#wp_news_w32 > ul > li')
+
+message0 = []
+message1 = []
+message2 = []
+#浙江大学求是学院
 for i in range(5):
-    date = all_data[i].select('span')[1].text
-    title = all_data[i].select('a')[0].text
-    href = 'http://qsxy.zju.edu.cn' + all_data[0].select('a')[0]['href']
-    print(date)
+    date = all_data0[i].select('span')[1].text
+    title = all_data0[i].select('a')[0]['title']
+    href = 'http://qsxy.zju.edu.cn' + all_data0[i].select('a')[0]['href']
+    """ print(date)
     print(title)
-    print(href)
+    print(href) """
+    message0.append(date+' '+title+' '+href+'\n')
+msg0 = "".join (message0)
+
+#紫云碧峰
+for i in range(4):
+    """ date = "".join (all_data1[i].find_all('div',class_='news_year')) + "".join (all_data1[i].find_all('div',class_='news_days')) """
+    title = all_data1[i].select('a')[0]['title']
+    href = 'https://yunfeng.zju.edu.cn/on/main.htm' + all_data1[i].select('a')[0]['href']
+    message1.append(title+' '+href+'\n')
+msg1 = "".join (message1)
+
+#丹阳青溪
+for i in range(4):
+    title = all_data2[i].select('a')[0]['title']
+    href = 'https://dqxy.zju.edu.cn/' + all_data2[i].select('a')[0]['href']
+    message2.append(title+' '+href+'\n')
+msg2 = "".join (message2)
+
+app_token = 'AT_H9vEDywGUROqyNCD2bNWsvS07iTOWKHY'   # 本处改成自己的应用 APP_TOKEN
+uid_myself = 'UID_Bq6u3Hh9LbrsGvoEV2UJpnMq3bT6'  # 本处改成自己的 UID
+
+def wxpusher_send_by_webapi(msg):
+    """利用 wxpusher 的 web api 发送 json 数据包，实现微信信息的发送"""
+    webapi = 'http://wxpusher.zjiecode.com/api/send/message'
+    data = {
+        "appToken":app_token,
+        "content":msg,
+        "summary":msg[:99], # 该参数可选，默认为 msg 的前10个字符
+        "contentType":1,
+        "uids":[ uid_myself, ],
+        }
+    result = requests.post(url=webapi,json=data)
+    return result.text
+
+def main(msg):
+    result = wxpusher_send_by_webapi(msg)
+    print(result)
+
+if __name__ == '__main__':  #作为脚本执行
+    main('求是学院\n\n' + msg0 + '\n紫云碧峰\n\n' + msg1 + '\n丹阳青溪\n\n' + msg2)
